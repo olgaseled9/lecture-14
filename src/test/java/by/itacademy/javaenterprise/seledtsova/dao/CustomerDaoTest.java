@@ -1,57 +1,66 @@
 package by.itacademy.javaenterprise.seledtsova.dao;
 
 import by.itacademy.javaenterprise.seledtsova.dao.impl.CustomerDaoImpl;
-import by.itacademy.javaenterprise.seledtsova.dao.impl.OrderDaoImpl;
 import by.itacademy.javaenterprise.seledtsova.entity.Customer;
+import org.apache.commons.dbcp2.BasicDataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-
-import javax.sql.DataSource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
+@Testcontainers
 public class CustomerDaoTest {
 
     private static CustomerDao customerDao;
-    private static OrderDao orderDao;
-    private static DataSource dataSource;
+    private static BasicDataSource basicDataSource;
     private static JdbcTemplate jdbcTemplate;
-    private static NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
 
     @BeforeClass
-    public static void setUpDB() {
-        dataSource = new DriverManagerDataSource("jdbc:postgresql://localhost:5432/imagine_store?useUnicode=true&characterEncoding=UTF-8",
-                "postgres", "postgres");
-        jdbcTemplate = new JdbcTemplate(dataSource);
-        namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
+    public static void beforeClass() throws Exception {
+        PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
+                .withDatabaseName("imagine_store")
+                .withUsername("postgres")
+                .withPassword("postgres");
+        postgreSQLContainer.start();
+        basicDataSource = new BasicDataSource();
+        basicDataSource.setUrl(postgreSQLContainer.getJdbcUrl());
+        basicDataSource.setUsername(postgreSQLContainer.getUsername());
+        basicDataSource.setPassword(postgreSQLContainer.getPassword());
+        basicDataSource.setDefaultSchema(postgreSQLContainer.getDatabaseName());
+        Flyway flyway = Flyway.configure()
+                .dataSource(basicDataSource)
+                .locations("classpath:db/migration")
+                .load();
+        flyway.migrate();
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(basicDataSource);
         customerDao = new CustomerDaoImpl(jdbcTemplate);
-        orderDao = new OrderDaoImpl(namedParameterJdbcTemplate);
     }
 
     @Test
-    public void testFindCustomerById() {
-        int customerId = 9;
-        Customer customer = customerDao.findCustomerByCustomerId(customerId);
-        assertEquals(customerId, customer.getCustomerId());
+    public void shouldFindCustomerByIdTest() {
+        long id = 2L;
+        Customer customer = customerDao.findCustomerByCustomerId(id);
+        assertEquals(id, customer.getCustomerId());
     }
 
     @Test
-    public void testUpdateCustomer() {
-        Customer customer = new Customer(1, "Anna", "Korenina");
-        customer.setCustomerId(1);
+    public void ShouldUpdateCustomerTest() {
+        Customer customer = new Customer(1L, "Anna", "Korenina");
+        customer.setCustomerId(1L);
         customer.setFirstName("Anna");
         customer.setLastName("Korenina");
-        customerDao.updateCustomerByCustomerId(1, customer);
-        customer.setCustomerId(1);
-        assertEquals(customer, customerDao.findCustomerByCustomerId(1));
+        customerDao.updateCustomerByCustomerId(1L, customer);
+        customer.setCustomerId(1L);
+        assertEquals(1L, customer.getCustomerId());
+
     }
 
+
 }
+
 
 

@@ -4,15 +4,15 @@ import by.itacademy.javaenterprise.seledtsova.entity.Customer;
 
 import java.util.List;
 
-public interface CustomerDao<K> {
+public interface CustomerDao {
 
-    void addCustomer(Customer customer);
+    void saveCustomer(Customer customer);
 
     List<Customer> getAll();
 
-    void deleteCustomerById(Integer customerId);
+    void deleteCustomerById(Long customerId);
 
-    Customer findCustomerByCustomerId(Integer customerID);
+    Customer findCustomerByCustomerId(Long customerID);
 
-    public int updateCustomerByCustomerId(int customerId, Customer customer);
+    public void updateCustomerByCustomerId(Long customerId, Customer customer);
 }

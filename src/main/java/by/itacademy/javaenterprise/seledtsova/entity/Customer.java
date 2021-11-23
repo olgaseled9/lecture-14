@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Customer {
 
-    private Integer customerId;
+    private Long customerId;
     private String firstName;
     private String lastName;
 

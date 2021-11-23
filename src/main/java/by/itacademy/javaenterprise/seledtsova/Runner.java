@@ -13,27 +13,28 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import java.sql.SQLException;
 
-public class RunnerSpring {
+public class Runner {
 
-    private static final Logger logger = LoggerFactory.getLogger(RunnerSpring.class);
+    private static final Logger logger = LoggerFactory.getLogger(Runner.class);
 
     public static void main(String[] args) throws SQLException {
-
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfig.class);
 
         CustomerDao customerDao = context.getBean("customerDaoBean", CustomerDaoImpl.class);
         logger.info("The bin customerDao class was created successfully");
-        customerDao.addCustomer(new Customer(26, "Vasia", "Petrov"));
-        System.out.println(customerDao.getAll());
-        System.out.println(customerDao.findCustomerByCustomerId(9));
-
         OrderDao orderDao = context.getBean("orderDaoBean", OrderDaoImpl.class);
         logger.info("The bin orderDao class was created successfully");
-        orderDao.addOrder(new Order(26, 26, "2020-11-09"));
-        orderDao.deleteOrderById(26);
-        customerDao.deleteCustomerById(26);
-        System.out.println(orderDao.getAll());
-
+        orderDao.getAll();
+        customerDao.saveCustomer(new Customer(25L, "Vasia", "Petrov"));
+        logger.info("Customer are added successfully");
+        orderDao.saveOrder(new Order(25L, 25L, 100));
+        logger.info("Order are added successfully");
+        orderDao.deleteOrderById(25L);
+        logger.info("Order delete successful");
+        customerDao.deleteCustomerById(25L);
+        logger.info("Customer delete successful");
+        customerDao.findCustomerByCustomerId(9L);
+        orderDao.findOrderById(123L);
         context.close();
     }
 }

@@ -11,9 +11,9 @@ public class OrderMapper implements RowMapper<Order> {
     @Override
     public Order mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         Order order = new Order();
-        order.setOrderId(resultSet.getInt("order_id"));
-        order.setCustomerId(resultSet.getInt("customer_id"));
-        order.setDateOrder(resultSet.getString("date_order"));
+        order.setOrderId(resultSet.getLong("order_id"));
+        order.setCustomerId(resultSet.getLong("customer_id"));
+        order.setQuantity(resultSet.getInt("quantity"));
         return order;
     }
 }
