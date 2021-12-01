@@ -24,7 +24,8 @@ public class Runner {
         logger.info("The bin customerDao class was created successfully");
         OrderDao orderDao = context.getBean("orderDaoBean", OrderDaoImpl.class);
         logger.info("The bin orderDao class was created successfully");
-        orderDao.getAll();
+        logger.info("{}", orderDao.getAll());
+        logger.info("{}", orderDao.findOrderById(123L));
         customerDao.saveCustomer(new Customer(25L, "Vasia", "Petrov"));
         logger.info("Customer are added successfully");
         orderDao.saveOrder(new Order(25L, 25L, 100));
@@ -33,11 +34,11 @@ public class Runner {
         logger.info("Order delete successful");
         customerDao.deleteCustomerById(25L);
         logger.info("Customer delete successful");
-        customerDao.findCustomerByCustomerId(9L);
-        orderDao.findOrderById(123L);
+        logger.info("{}", customerDao.findCustomerByCustomerId(9L));
         context.close();
     }
 }
+
 
 
 

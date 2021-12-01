@@ -2,65 +2,68 @@ package by.itacademy.javaenterprise.seledtsova.dao;
 
 import by.itacademy.javaenterprise.seledtsova.dao.impl.CustomerDaoImpl;
 import by.itacademy.javaenterprise.seledtsova.entity.Customer;
-import org.apache.commons.dbcp2.BasicDataSource;
-import org.flywaydb.core.Flyway;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.jdbc.core.RowMapper;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
-@Testcontainers
 public class CustomerDaoTest {
 
-    private static CustomerDao customerDao;
-    private static BasicDataSource basicDataSource;
-    private static JdbcTemplate jdbcTemplate;
+    private JdbcTemplate jdbcTemplateMock;
+    private CustomerDao customerDao;
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-        PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
-                .withDatabaseName("imagine_store")
-                .withUsername("postgres")
-                .withPassword("postgres");
-        postgreSQLContainer.start();
-        basicDataSource = new BasicDataSource();
-        basicDataSource.setUrl(postgreSQLContainer.getJdbcUrl());
-        basicDataSource.setUsername(postgreSQLContainer.getUsername());
-        basicDataSource.setPassword(postgreSQLContainer.getPassword());
-        basicDataSource.setDefaultSchema(postgreSQLContainer.getDatabaseName());
-        Flyway flyway = Flyway.configure()
-                .dataSource(basicDataSource)
-                .locations("classpath:db/migration")
-                .load();
-        flyway.migrate();
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(basicDataSource);
-        customerDao = new CustomerDaoImpl(jdbcTemplate);
+    @BeforeEach
+    public void setUp() throws Exception {
+        jdbcTemplateMock = Mockito.mock(JdbcTemplate.class);
+        customerDao = new CustomerDaoImpl(jdbcTemplateMock);
+    }
+
+    @Test
+    public void shouldGetAllCustomersTest() {
+        List<Customer> customers = customerDao.getAll();
+        Assertions.assertThat(customers.size()).isZero();
     }
 
     @Test
     public void shouldFindCustomerByIdTest() {
-        long id = 2L;
-        Customer customer = customerDao.findCustomerByCustomerId(id);
-        assertEquals(id, customer.getCustomerId());
+        long customerId = 9;
+        Customer customer = new Customer();
+        customer.setCustomerId(customerId);
+        when(jdbcTemplateMock.queryForObject(Mockito.anyString(), Mockito.<RowMapper<Customer>>any(),
+                Mockito.any())).thenReturn(customer);
+        int queryId = 9;
+        assertEquals(queryId, customer.getCustomerId());
     }
 
     @Test
     public void ShouldUpdateCustomerTest() {
-        Customer customer = new Customer(1L, "Anna", "Korenina");
-        customer.setCustomerId(1L);
+        Customer customer = new Customer();
+        customer.setCustomerId(10L);
         customer.setFirstName("Anna");
         customer.setLastName("Korenina");
         customerDao.updateCustomerByCustomerId(1L, customer);
-        customer.setCustomerId(1L);
-        assertEquals(1L, customer.getCustomerId());
-
+        Assertions.assertThat(customer.getCustomerId()).isEqualTo(10);
     }
 
-
+    @Test
+    public void shouldDeleteCustomerTest() {
+        Long customerId = 35L;
+        Customer customer = customerDao.findCustomerByCustomerId(customerId);
+        customerDao.deleteCustomerById(customerId);
+        Customer customer1 = null;
+        when(jdbcTemplateMock.queryForObject(Mockito.anyString(), Mockito.<RowMapper<Customer>>any(),
+                Mockito.any())).thenReturn(customer);
+        Assertions.assertThat(customer).isNull();
+    }
 }
+
 
 
 

@@ -12,7 +12,7 @@ public interface OrderDao {
 
     void deleteOrderById(Long orderId);
 
-    public void update(Long orderId, Order order);
+    void update(Long orderId, Order order);
 
     Order findOrderById(long id);
 

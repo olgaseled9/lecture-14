@@ -10,8 +10,8 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@Builder
 @AllArgsConstructor
+@Builder
 public class Order {
 
     private Long orderId;

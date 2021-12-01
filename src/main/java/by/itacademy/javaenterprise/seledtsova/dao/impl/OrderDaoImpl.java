@@ -5,14 +5,12 @@ import by.itacademy.javaenterprise.seledtsova.entity.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Component;
 
-import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +23,8 @@ public class OrderDaoImpl implements OrderDao {
     private static final String DELETE_ORDER_FROM_CUSTOMER_TABLES = "DELETE FROM Orders WHERE order_id = :order_id";
     private static final String ADD_NEW_ORDER = "INSERT INTO Orders (order_id, customer_id, quantity) VALUES (:order_id, :customer_id, :date_order)";
     private static final String UPDATE_ORDER = "UPDATE Orders SET customer_id=:customer_id, quantity=:date_order WHERE order_id=?";
-    private static final String SELECT_FROM_ORDER_TABLE_BY_ORDER_ID = "SELECT order_id, customer_id, quantity FROM Orders WHERE order_id=?";
-    private DataSource dataSource;
+    private static final String SELECT_FROM_ORDER_TABLE_BY_ORDER_ID = "SELECT order_id, customer_id, quantity FROM Orders  WHERE order_id=:id";
+
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
     private MapSqlParameterSource mapSqlParameterSource;
 
@@ -36,14 +34,25 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
+    public Order findOrderById(long id) {
+        try {
+            Map<String, Long> params = Map.of("id", id);
+            return namedParameterJdbcTemplate.queryForObject(SELECT_FROM_ORDER_TABLE_BY_ORDER_ID, params, new OrderMapper());
+        } catch (Exception e) {
+            logger.error("Get order by id is not impossible" + e.getMessage(), e);
+        }
+        return null;
+    }
+
+    @Override
     public void saveOrder(Order order) {
         try {
             SqlParameterSource namedParameter = new MapSqlParameterSource("order_id", order.getOrderId())
                     .addValue("customer_id", order.getCustomerId())
                     .addValue("date_order", order.getQuantity());
             namedParameterJdbcTemplate.update(ADD_NEW_ORDER, namedParameter);
-        } catch (Exception ex) {
-            logger.error("Update order is not available", ex);
+        } catch (Exception e) {
+            logger.error("Update order is not available" + e.getMessage(), e);
         }
     }
 
@@ -53,8 +62,8 @@ public class OrderDaoImpl implements OrderDao {
         try {
             namedParameterJdbcTemplate.update(DELETE_ORDER_FROM_CUSTOMER_TABLES, namedParameters);
             logger.info("A row was removed successful from the ORDERS table" + orderId);
-        } catch (DataAccessException e) {
-            logger.error("No order found with ID " + orderId);
+        } catch (Exception e) {
+            logger.error("No order found with ID " + orderId + e.getMessage(), e);
         }
     }
 
@@ -62,8 +71,8 @@ public class OrderDaoImpl implements OrderDao {
     public List<Order> getAll() {
         try {
             return namedParameterJdbcTemplate.query(SELECT_FROM_ORDER_TABLE, new BeanPropertyRowMapper<>(Order.class));
-        } catch (DataAccessException e) {
-            logger.error("Get all order is not available " + e);
+        } catch (Exception e) {
+            logger.error("Get all orders is not available " + e.getMessage(), e);
             return new ArrayList<Order>();
         }
     }
@@ -75,24 +84,8 @@ public class OrderDaoImpl implements OrderDao {
         mapSqlParameterSource.addValue("date_order", order.getQuantity());
         try {
             namedParameterJdbcTemplate.update(UPDATE_ORDER, mapSqlParameterSource);
-        } catch (DataAccessException e) {
-            logger.error("Update order table by orderId is not impossible " + e);
+        } catch (Exception e) {
+            logger.error("Update order table by orderId is not impossible " + e.getMessage(), e);
         }
-    }
-
-    @Override
-    public Order findOrderById(long id) {
-        try {
-            Map<String, Long> params = Map.of("id", id);
-            return namedParameterJdbcTemplate.queryForObject(SELECT_FROM_ORDER_TABLE_BY_ORDER_ID, params, new OrderMapper());
-        } catch (Exception ex) {
-            logger.error("Get order by id is not impossible");
-        }
-        return null;
-    }
-
-    @Autowired
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
     }
 }

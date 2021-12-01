@@ -14,5 +14,5 @@ public interface CustomerDao {
 
     Customer findCustomerByCustomerId(Long customerID);
 
-    public void updateCustomerByCustomerId(Long customerId, Customer customer);
+    void updateCustomerByCustomerId(Long customerId, Customer customer);
 }
